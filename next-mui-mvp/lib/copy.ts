@@ -1,0 +1,74 @@
+import { Assumptions, CounterKind } from "../types";
+import {
+  getCoffeesLeft,
+  getLifeExpectancyAge,
+  getNextWeekStartRemaining,
+  getSundaysRemaining
+} from "./calc";
+
+const tonePrefix = {
+  dry: "Assuming",
+  bleak: "Assuming, grimly,",
+  bureaucratic: "Per current policy, assuming",
+  cosmic: "Assuming the universe permits"
+};
+
+export const getSubtext = (kind: CounterKind, assumptions: Assumptions) => {
+  const expectancyAge = getLifeExpectancyAge(assumptions.lifeExpectancy);
+  switch (kind) {
+    case "coffees":
+      return `${tonePrefix[assumptions.tone]} ${assumptions.coffeesPerDay} coffees/day until age ${expectancyAge}.`;
+    case "sundays":
+      return `${tonePrefix[assumptions.tone]} weeks until age ${expectancyAge}, one Sunday each.`;
+    case "nextWeek":
+      return `${tonePrefix[assumptions.tone]} optimism ${assumptions.optimism}/10 delays the start.`;
+    default:
+      return "";
+  }
+};
+
+export const getHowCalculated = (kind: CounterKind) => {
+  switch (kind) {
+    case "coffees":
+      return "Coffees left is the total remaining weeks multiplied by 7 days and your coffees per day.";
+    case "sundays":
+      return "Sundays remaining is the number of weeks left until your selected life expectancy.";
+    case "nextWeek":
+      return "Next week I’ll start is the portion of remaining weeks postponed by your optimism score.";
+    default:
+      return "";
+  }
+};
+
+export const getFormula = (kind: CounterKind) => {
+  switch (kind) {
+    case "coffees":
+      return "(lifeExpectancyAge - age) × 52 × 7 × coffeesPerDay";
+    case "sundays":
+      return "(lifeExpectancyAge - age) × 52";
+    case "nextWeek":
+      return "(lifeExpectancyAge - age) × 52 × (1 - optimism/10)";
+    default:
+      return "";
+  }
+};
+
+export const getAssumptionsUsed = (assumptions: Assumptions) => [
+  `Age: ${assumptions.age}`,
+  `Life expectancy: ${assumptions.lifeExpectancy}`,
+  `Coffees/day: ${assumptions.coffeesPerDay}`,
+  `Optimism: ${assumptions.optimism}/10`
+];
+
+export const getValueForKind = (kind: CounterKind, assumptions: Assumptions) => {
+  switch (kind) {
+    case "coffees":
+      return getCoffeesLeft(assumptions);
+    case "sundays":
+      return getSundaysRemaining(assumptions);
+    case "nextWeek":
+      return getNextWeekStartRemaining(assumptions);
+    default:
+      return 0;
+  }
+};
