@@ -81,6 +81,21 @@ export default function AssumptionsPanel({ value, onChange }: AssumptionsPanelPr
       />
 
       <Typography variant="subtitle2" color="text.secondary">
+        Workdays/week
+      </Typography>
+      <Slider
+        value={value.workdaysPerWeek}
+        min={0}
+        max={7}
+        step={1}
+        marks
+        valueLabelDisplay="auto"
+        onChange={(_, next) =>
+          onChange({ ...value, workdaysPerWeek: Number(next) })
+        }
+      />
+
+      <Typography variant="subtitle2" color="text.secondary">
         Optimism
       </Typography>
       <Slider

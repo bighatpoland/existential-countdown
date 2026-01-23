@@ -26,6 +26,14 @@ export const getCoffeesLeft = (assumptions: Assumptions) => {
   );
 };
 
+export const getWorkdaysRemaining = (assumptions: Assumptions) => {
+  const weeksRemaining = getWeeksRemaining(assumptions);
+  return Math.max(
+    0,
+    Math.floor(weeksRemaining * Math.max(0, assumptions.workdaysPerWeek))
+  );
+};
+
 export const getNextWeekStartRemaining = (assumptions: Assumptions) => {
   const weeksRemaining = getWeeksRemaining(assumptions);
   const optimismFactor = Math.min(1, Math.max(0, assumptions.optimism / 10));

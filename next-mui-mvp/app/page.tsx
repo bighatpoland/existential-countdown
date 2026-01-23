@@ -34,7 +34,8 @@ import { Assumptions, CounterKind, Snapshot } from "../types";
 import {
   getCoffeesLeft,
   getNextWeekStartRemaining,
-  getSundaysRemaining
+  getSundaysRemaining,
+  getWorkdaysRemaining
 } from "../lib/calc";
 import { getSubtext } from "../lib/copy";
 import {
@@ -49,6 +50,7 @@ const defaultAssumptions: Assumptions = {
   age: 30,
   lifeExpectancy: "average",
   coffeesPerDay: 2,
+  workdaysPerWeek: 5,
   optimism: 5,
   tone: "dry"
 };
@@ -81,8 +83,9 @@ export default function HomePage() {
     const saved = loadAssumptions();
     const savedSnapshots = loadSnapshots();
     if (saved) {
-      setAssumptions(saved);
-      setDraftAssumptions(saved);
+      const merged = { ...defaultAssumptions, ...saved };
+      setAssumptions(merged);
+      setDraftAssumptions(merged);
     }
     if (savedSnapshots.length) {
       setSnapshots(savedSnapshots);
@@ -125,6 +128,7 @@ export default function HomePage() {
 
   const coffeesLeft = getCoffeesLeft(assumptions);
   const sundaysRemaining = getSundaysRemaining(assumptions);
+  const workdaysRemaining = getWorkdaysRemaining(assumptions);
   const nextWeekRemaining = getNextWeekStartRemaining(assumptions);
 
   if (!mounted) {
@@ -189,6 +193,14 @@ export default function HomePage() {
                     value={sundaysRemaining}
                     subtext={getSubtext("sundays", assumptions)}
                     onOpen={() => handleOpenDetails("sundays")}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <CounterCard
+                    title="Workdays remaining"
+                    value={workdaysRemaining}
+                    subtext={getSubtext("workdays", assumptions)}
+                    onOpen={() => handleOpenDetails("workdays")}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>

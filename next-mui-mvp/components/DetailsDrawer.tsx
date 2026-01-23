@@ -27,6 +27,7 @@ type DetailsDrawerProps = {
 const titleMap: Record<CounterKind, string> = {
   coffees: "Coffees left",
   sundays: "Sundays remaining",
+  workdays: "Workdays remaining",
   nextWeek: "Next week I’ll start"
 };
 
