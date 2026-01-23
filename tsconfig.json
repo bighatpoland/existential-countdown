@@ -4,6 +4,7 @@
     "target": "esnext",
     "module": "commonjs",
     "lib": [
+      "dom",
       "esnext"
     ],
     "jsx": "react-native",
