@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Gyroscope } from 'expo-sensors';
 
 interface BulbCounterProps {
@@ -14,19 +14,29 @@ export const BulbCounter: React.FC<BulbCounterProps> = ({ unit }) => {
     let subscription: any = null;
 
     const subscribe = async () => {
-      const available = await Gyroscope.isAvailableAsync();
-      setIsAvailable(available);
+      if (Platform.OS === 'web') {
+        setIsAvailable(false);
+        return;
+      }
 
-      if (available) {
-        Gyroscope.setUpdateInterval(100); // 100ms
+      try {
+        const available = await Gyroscope.isAvailableAsync();
+        setIsAvailable(available);
 
-        subscription = Gyroscope.addListener(gyroscopeData => {
-          const { x, y, z } = gyroscopeData;
-          const magnitude = Math.sqrt(x * x + y * y + z * z);
-          if (magnitude > 10) { // Threshold for "drop"
-            setBulbsBroken(prev => prev + 1);
-          }
-        });
+        if (available) {
+          Gyroscope.setUpdateInterval(100); // 100ms
+
+          subscription = Gyroscope.addListener(gyroscopeData => {
+            const { x, y, z } = gyroscopeData;
+            const magnitude = Math.sqrt(x * x + y * y + z * z);
+            if (magnitude > 10) { // Threshold for "drop"
+              setBulbsBroken(prev => prev + 1);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error initializing bulb counter:', error);
+        setIsAvailable(false);
       }
     };
 

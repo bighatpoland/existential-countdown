@@ -7,6 +7,7 @@ export const storageKeys = {
   APP_SETTINGS: '@existential_settings',
   PERMISSIONS: '@existential_permissions',
   LAST_LOCATION: '@existential_last_location',
+  SECURE_PREFIX: '@existential_secure_',
 };
 
 export class StorageService {
@@ -79,7 +80,13 @@ export class StorageService {
   // API Key (Secure)
   static async saveApiKey(key: string, value: string): Promise<void> {
     try {
-      await SecureStore.setItemAsync(key, value);
+      const secureAvailable = await SecureStore.isAvailableAsync().catch(() => false);
+      if (secureAvailable) {
+        await SecureStore.setItemAsync(key, value);
+        return;
+      }
+
+      await AsyncStorage.setItem(`${storageKeys.SECURE_PREFIX}${key}`, value);
     } catch (error) {
       console.error('Error saving API key:', error);
     }
@@ -87,7 +94,12 @@ export class StorageService {
 
   static async getApiKey(key: string): Promise<string | null> {
     try {
-      return await SecureStore.getItemAsync(key);
+      const secureAvailable = await SecureStore.isAvailableAsync().catch(() => false);
+      if (secureAvailable) {
+        return await SecureStore.getItemAsync(key);
+      }
+
+      return await AsyncStorage.getItem(`${storageKeys.SECURE_PREFIX}${key}`);
     } catch (error) {
       console.error('Error retrieving API key:', error);
       return null;
@@ -98,6 +110,13 @@ export class StorageService {
   static async clearAll(): Promise<void> {
     try {
       await AsyncStorage.multiRemove(Object.values(storageKeys));
+      const allKeys = await AsyncStorage.getAllKeys();
+      const secureKeys = allKeys.filter((key) =>
+        key.startsWith(storageKeys.SECURE_PREFIX)
+      );
+      if (secureKeys.length > 0) {
+        await AsyncStorage.multiRemove(secureKeys);
+      }
     } catch (error) {
       console.error('Error clearing storage:', error);
     }

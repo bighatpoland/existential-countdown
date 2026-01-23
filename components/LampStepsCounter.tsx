@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import { Pedometer } from 'expo-sensors';
 
@@ -9,30 +9,42 @@ interface LampStepsCounterProps {
 export const LampStepsCounter: React.FC<LampStepsCounterProps> = ({ unit }) => {
   const [stepsToLamp, setStepsToLamp] = useState<number>(100); // Simulate 100 steps to next lamp
   const [isAvailable, setIsAvailable] = useState<boolean>(false);
+  const baseStepsRef = useRef<number>(0);
 
   useEffect(() => {
     let subscription: any = null;
 
     const subscribe = async () => {
-      const isAvailable = await Pedometer.isAvailableAsync();
-      setIsAvailable(isAvailable);
+      if (Platform.OS === 'web') {
+        setIsAvailable(false);
+        return;
+      }
 
-      if (isAvailable) {
-        const end = new Date();
-        const start = new Date();
-        start.setHours(0, 0, 0, 0);
+      try {
+        const available = await Pedometer.isAvailableAsync();
+        setIsAvailable(available);
 
-        const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
-        if (pastStepCountResult) {
-          setStepsToLamp(100 - (pastStepCountResult.steps % 100));
+        if (available) {
+          const end = new Date();
+          const start = new Date();
+          start.setHours(0, 0, 0, 0);
+
+          const pastStepCountResult = await Pedometer.getStepCountAsync(start, end);
+          const baseSteps = pastStepCountResult?.steps ?? 0;
+          baseStepsRef.current = baseSteps;
+
+          const initialRemainder = baseSteps % 100;
+          setStepsToLamp(initialRemainder === 0 ? 100 : 100 - initialRemainder);
+
+          subscription = Pedometer.watchStepCount(result => {
+            const totalSteps = baseStepsRef.current + result.steps;
+            const remainder = totalSteps % 100;
+            setStepsToLamp(remainder === 0 ? 100 : 100 - remainder);
+          });
         }
-
-        subscription = Pedometer.watchStepCount(result => {
-          setStepsToLamp(prev => Math.max(0, prev - result.steps));
-          if (stepsToLamp - result.steps <= 0) {
-            setStepsToLamp(100); // Reset to next lamp
-          }
-        });
+      } catch (error) {
+        console.error('Error initializing lamp steps counter:', error);
+        setIsAvailable(false);
       }
     };
 
