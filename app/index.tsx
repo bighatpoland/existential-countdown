@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useRootNavigationState } from 'expo-router';
 import { useSelector } from 'react-redux';
 import { RootState } from '../src/store';
 import { CountdownTimer } from '@/components/CountdownTimer';
@@ -17,6 +17,7 @@ import { timers } from '@/data/timers';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const rootNavigationState = useRootNavigationState();
   const onboardingCompleted = useSelector((state: RootState) => state.settings.onboardingCompleted);
   const savedCounters = useSelector((state: RootState) => state.user.savedCounters);
   const customCounters = useSelector((state: RootState) => state.user.customCounters);
@@ -69,12 +70,15 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    if (!rootNavigationState?.key) {
+      return;
+    }
     if (!onboardingCompleted) {
       router.replace('/onboarding');
     }
-  }, [onboardingCompleted, router]);
+  }, [onboardingCompleted, rootNavigationState?.key, router]);
 
-  if (!onboardingCompleted) {
+  if (!rootNavigationState?.key || !onboardingCompleted) {
     return null; // or a loading screen
   }
 

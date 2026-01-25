@@ -26,18 +26,22 @@ import TuneIcon from "@mui/icons-material/Tune";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
 import CounterCard from "../components/CounterCard";
+import AssumptionCard from "../components/AssumptionCard";
 import AssumptionsPanel from "../components/AssumptionsPanel";
 import DetailsDrawer from "../components/DetailsDrawer";
 import { ColorModeContext } from "./providers";
-import { Assumptions, CounterKind, Snapshot } from "../types";
+import { Assumptions, CounterKind, LifeAssumption, Snapshot } from "../types";
 import {
   getCoffeesLeft,
   getNextWeekStartRemaining,
   getSundaysRemaining,
   getWorkdaysRemaining
 } from "../lib/calc";
+import { getAssumptionValue } from "../lib/assumptionCalc";
 import { getSubtext } from "../lib/copy";
+import { assumptionsBase } from "../lib/assumptionsBase";
 import {
   clearAssumptions,
   loadAssumptions,
@@ -53,6 +57,12 @@ const defaultAssumptions: Assumptions = {
   workdaysPerWeek: 5,
   optimism: 5,
   tone: "dry"
+};
+
+const getRandomAssumptionSet = (count?: number) => {
+  const size = count ?? 3 + Math.floor(Math.random() * 3);
+  const shuffled = [...assumptionsBase].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, size);
 };
 
 export default function HomePage() {
@@ -73,6 +83,16 @@ export default function HomePage() {
   const [detailsKind, setDetailsKind] = React.useState<CounterKind | null>(
     null
   );
+  const [assumptionSet, setAssumptionSet] = React.useState<LifeAssumption[]>(
+    []
+  );
+  const [assumptionMessage, setAssumptionMessage] = React.useState<
+    string | null
+  >(null);
+  const [assumptionDetailsOpen, setAssumptionDetailsOpen] =
+    React.useState(false);
+  const [assumptionDetails, setAssumptionDetails] =
+    React.useState<LifeAssumption | null>(null);
   const [snapshots, setSnapshots] = React.useState<Snapshot[]>([]);
 
   React.useEffect(() => {
@@ -93,6 +113,10 @@ export default function HomePage() {
   }, []);
 
   React.useEffect(() => {
+    setAssumptionSet(getRandomAssumptionSet());
+  }, []);
+
+  React.useEffect(() => {
     const handle = setTimeout(() => {
       setAssumptions(draftAssumptions);
     }, 150);
@@ -109,9 +133,20 @@ export default function HomePage() {
     clearAssumptions();
   };
 
+  const handleReloadAssumptions = () => {
+    setAssumptionSet(getRandomAssumptionSet());
+    setAssumptionMessage("Assumptions updated.");
+    window.setTimeout(() => setAssumptionMessage(null), 2000);
+  };
+
   const handleOpenDetails = (kind: CounterKind) => {
     setDetailsKind(kind);
     setDetailsOpen(true);
+  };
+
+  const handleOpenAssumptionDetails = (item: LifeAssumption) => {
+    setAssumptionDetails(item);
+    setAssumptionDetailsOpen(true);
   };
 
   const handleSaveSnapshot = () => {
@@ -213,14 +248,50 @@ export default function HomePage() {
                 </Grid>
               </Grid>
 
+              <Divider />
+
+              <Stack spacing={1}>
+                <Typography variant="subtitle1" color="text.secondary">
+                  Assumptions base
+                </Typography>
+                <Grid container spacing={2}>
+                  {assumptionSet.map((item) => (
+                    <Grid item xs={12} sm={6} key={item.id}>
+                      <AssumptionCard
+                        label={item.label}
+                        value={getAssumptionValue(assumptions, item)}
+                        unit={item.unit}
+                        description={item.description}
+                        onOpen={() => handleOpenAssumptionDetails(item)}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              </Stack>
+
               <Box>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   Snapshot
                 </Typography>
                 <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                  <Button variant="outlined" onClick={handleSaveSnapshot}>
-                    Save snapshot
-                  </Button>
+                  <Stack spacing={1.5}>
+                    <Button variant="outlined" onClick={handleSaveSnapshot}>
+                      Save snapshot
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      startIcon={<AutorenewIcon />}
+                      onClick={handleReloadAssumptions}
+                    >
+                      New set of assumptions
+                    </Button>
+                    {assumptionMessage && (
+                      <Typography variant="caption" color="text.secondary">
+                        {assumptionMessage}
+                      </Typography>
+                    )}
+                  </Stack>
                   <Stack spacing={1}>
                     {snapshots.length === 0 ? (
                       <Typography variant="body2" color="text.secondary">
@@ -274,6 +345,45 @@ export default function HomePage() {
         assumptions={assumptions}
         variant={isDesktop ? "drawer" : "dialog"}
       />
+
+      <Dialog
+        open={assumptionDetailsOpen}
+        onClose={() => setAssumptionDetailsOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>{assumptionDetails?.label}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2}>
+            <Typography variant="body2" color="text.secondary">
+              {assumptionDetails?.description}
+            </Typography>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Calculation
+              </Typography>
+              <Typography variant="body2">
+                {assumptionDetails?.calculationHint}
+              </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">
+                Affected by
+              </Typography>
+              <Stack spacing={0.5}>
+                {assumptionDetails?.affectedBy.map((item) => (
+                  <Typography key={item} variant="body2">
+                    {item}
+                  </Typography>
+                ))}
+              </Stack>
+            </Box>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setAssumptionDetailsOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)}>
         <DialogTitle>About</DialogTitle>
