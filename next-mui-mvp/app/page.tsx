@@ -60,7 +60,7 @@ const defaultAssumptions: Assumptions = {
 };
 
 const getRandomAssumptionSet = (count?: number) => {
-  const size = count ?? 3 + Math.floor(Math.random() * 3);
+  const size = count ?? 9;
   const shuffled = [...assumptionsBase].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, size);
 };
@@ -256,7 +256,7 @@ export default function HomePage() {
                 </Typography>
                 <Grid container spacing={2}>
                   {assumptionSet.map((item) => (
-                    <Grid item xs={12} sm={6} key={item.id}>
+                    <Grid item xs={12} sm={4} key={item.id}>
                       <AssumptionCard
                         label={item.label}
                         value={getAssumptionValue(assumptions, item)}
