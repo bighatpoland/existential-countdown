@@ -1,26 +1,38 @@
 import { Assumptions, LifeAssumption } from "../types";
-import { getLifeExpectancyAge, getWeeksRemaining } from "./calc";
+import { getAdjustedLifeExpectancyAge, getWeeksRemaining } from "./calc";
 
 const clamp = (value: number, min: number, max: number) =>
   Math.min(max, Math.max(min, value));
 
 const getRemainingYears = (assumptions: Assumptions) => {
-  const expectancy = getLifeExpectancyAge(assumptions.lifeExpectancy);
+  const expectancy = getAdjustedLifeExpectancyAge(assumptions);
   return Math.max(0, expectancy - assumptions.age);
 };
 
+const getHealthConditionFactor = (assumptions: Assumptions) =>
+  clamp(0.9 + (assumptions.healthCondition - 3) * 0.05, 0.75, 1.15);
+
+const getEatingHabitsFactor = (assumptions: Assumptions) =>
+  clamp(0.85 + (assumptions.eatingHabits - 3) * 0.06, 0.7, 1.2);
+
 const getLifestyleFactor = (assumptions: Assumptions) =>
   clamp(
-    0.85 + (assumptions.workdaysPerWeek - 5) * 0.05 + (assumptions.coffeesPerDay - 2) * 0.04,
-    0.65,
-    1.35
+    (0.85 +
+      (assumptions.workdaysPerWeek - 5) * 0.05 +
+      (assumptions.coffeesPerDay - 2) * 0.04) *
+      getHealthConditionFactor(assumptions),
+    0.55,
+    1.45
   );
 
 const getHabitsFactor = (assumptions: Assumptions) =>
   clamp(
-    0.6 + (assumptions.coffeesPerDay / 6) * 0.5 + (assumptions.workdaysPerWeek / 7) * 0.3,
-    0.5,
-    1.4
+    (0.6 +
+      (assumptions.coffeesPerDay / 6) * 0.5 +
+      (assumptions.workdaysPerWeek / 7) * 0.3) *
+      getEatingHabitsFactor(assumptions),
+    0.45,
+    1.5
   );
 
 const getOptimismFactor = (assumptions: Assumptions) =>

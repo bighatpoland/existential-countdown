@@ -1,7 +1,7 @@
 import { Assumptions, CounterKind } from "../types";
 import {
   getCoffeesLeft,
-  getLifeExpectancyAge,
+  getAdjustedLifeExpectancyAge,
   getNextWeekStartRemaining,
   getSundaysRemaining,
   getWorkdaysRemaining
@@ -15,7 +15,7 @@ const tonePrefix = {
 };
 
 export const getSubtext = (kind: CounterKind, assumptions: Assumptions) => {
-  const expectancyAge = getLifeExpectancyAge(assumptions.lifeExpectancy);
+  const expectancyAge = getAdjustedLifeExpectancyAge(assumptions);
   switch (kind) {
     case "coffees":
       return `${tonePrefix[assumptions.tone]} ${assumptions.coffeesPerDay} coffees/day until age ${expectancyAge}.`;
@@ -33,13 +33,13 @@ export const getSubtext = (kind: CounterKind, assumptions: Assumptions) => {
 export const getHowCalculated = (kind: CounterKind) => {
   switch (kind) {
     case "coffees":
-      return "Coffees left is the total remaining weeks multiplied by 7 days and your coffees per day.";
+      return "Coffees left is the total remaining weeks (adjusted by health and eating habits) multiplied by 7 days and your coffees per day.";
     case "sundays":
-      return "Sundays remaining is the number of weeks left until your selected life expectancy.";
+      return "Sundays remaining is the number of weeks left until your adjusted life expectancy.";
     case "workdays":
-      return "Workdays remaining is the remaining weeks multiplied by your workdays per week.";
+      return "Workdays remaining is the adjusted remaining weeks multiplied by your workdays per week.";
     case "nextWeek":
-      return "Next week I’ll start is the portion of remaining weeks postponed by your optimism score.";
+      return "Next week I’ll start is the portion of adjusted remaining weeks postponed by your optimism score.";
     default:
       return "";
   }
@@ -48,13 +48,13 @@ export const getHowCalculated = (kind: CounterKind) => {
 export const getFormula = (kind: CounterKind) => {
   switch (kind) {
     case "coffees":
-      return "(lifeExpectancyAge - age) × 52 × 7 × coffeesPerDay";
+      return "(adjustedLifeExpectancyAge - age) × 52 × 7 × coffeesPerDay";
     case "sundays":
-      return "(lifeExpectancyAge - age) × 52";
+      return "(adjustedLifeExpectancyAge - age) × 52";
     case "workdays":
-      return "(lifeExpectancyAge - age) × 52 × workdaysPerWeek";
+      return "(adjustedLifeExpectancyAge - age) × 52 × workdaysPerWeek";
     case "nextWeek":
-      return "(lifeExpectancyAge - age) × 52 × (1 - optimism/10)";
+      return "(adjustedLifeExpectancyAge - age) × 52 × (1 - optimism/10)";
     default:
       return "";
   }
@@ -63,6 +63,8 @@ export const getFormula = (kind: CounterKind) => {
 export const getAssumptionsUsed = (assumptions: Assumptions) => [
   `Age: ${assumptions.age}`,
   `Life expectancy: ${assumptions.lifeExpectancy}`,
+  `Health condition: ${assumptions.healthCondition}/5`,
+  `Eating habits: ${assumptions.eatingHabits}/5`,
   `Coffees/day: ${assumptions.coffeesPerDay}`,
   `Workdays/week: ${assumptions.workdaysPerWeek}`,
   `Optimism: ${assumptions.optimism}/10`

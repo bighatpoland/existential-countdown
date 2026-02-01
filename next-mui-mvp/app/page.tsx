@@ -53,6 +53,8 @@ import {
 const defaultAssumptions: Assumptions = {
   age: 30,
   lifeExpectancy: "average",
+  healthCondition: 3,
+  eatingHabits: 3,
   coffeesPerDay: 2,
   workdaysPerWeek: 5,
   optimism: 5,

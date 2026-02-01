@@ -3,6 +3,7 @@
 import React from "react";
 import {
   Box,
+  Divider,
   FormControl,
   InputLabel,
   MenuItem,
@@ -14,6 +15,7 @@ import {
   Typography
 } from "@mui/material";
 import { Assumptions, AbsurdityTone, LifeExpectancy } from "../types";
+import { getAdjustedLifeExpectancyAge, getHealthProfile } from "../lib/calc";
 
 type AssumptionsPanelProps = {
   value: Assumptions;
@@ -33,10 +35,29 @@ const toneOptions: { value: AbsurdityTone; label: string }[] = [
   { value: "cosmic", label: "Cosmic" }
 ];
 
+const healthMarks = [
+  { value: 1, label: "Poor" },
+  { value: 2, label: "Fair" },
+  { value: 3, label: "OK" },
+  { value: 4, label: "Good" },
+  { value: 5, label: "Great" }
+];
+
+const eatingMarks = [
+  { value: 1, label: "Ultra-processed" },
+  { value: 2, label: "Convenience" },
+  { value: 3, label: "Mixed" },
+  { value: 4, label: "Mostly whole" },
+  { value: 5, label: "Whole-food" }
+];
+
 export default function AssumptionsPanel({ value, onChange }: AssumptionsPanelProps) {
+  const adjustedLifeExpectancy = getAdjustedLifeExpectancyAge(value);
+  const healthProfile = getHealthProfile(value);
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <Typography variant="h6">Assumptions</Typography>
+      <Typography variant="h6">Settings</Typography>
       <TextField
         label="Age"
         type="number"
@@ -46,6 +67,47 @@ export default function AssumptionsPanel({ value, onChange }: AssumptionsPanelPr
           onChange({ ...value, age: Number(event.target.value) || 0 })
         }
       />
+
+      <Typography variant="subtitle2" color="text.secondary">
+        Health condition (1–5)
+      </Typography>
+      <Slider
+        value={value.healthCondition}
+        min={1}
+        max={5}
+        step={1}
+        marks={healthMarks}
+        valueLabelDisplay="auto"
+        onChange={(_, next) =>
+          onChange({ ...value, healthCondition: Number(next) })
+        }
+      />
+
+      <Typography variant="subtitle2" color="text.secondary">
+        Eating habits
+      </Typography>
+      <Slider
+        value={value.eatingHabits}
+        min={1}
+        max={5}
+        step={1}
+        marks={eatingMarks}
+        valueLabelDisplay="auto"
+        onChange={(_, next) =>
+          onChange({ ...value, eatingHabits: Number(next) })
+        }
+      />
+
+      <Typography variant="body2" color="text.secondary">
+        Projected health: {healthProfile.label} — {healthProfile.description}
+      </Typography>
+      <Typography variant="body2" color="text.secondary">
+        Adjusted life expectancy: {adjustedLifeExpectancy}
+      </Typography>
+
+      <Divider />
+
+      <Typography variant="h6">Assumptions</Typography>
 
       <Typography variant="subtitle2" color="text.secondary">
         Life expectancy
