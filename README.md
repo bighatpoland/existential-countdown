@@ -1,6 +1,7 @@
 # Existential Countdown — A Nerdy, Sarcastic Death Clock
 
 Welcome to the app that counts down everything you *definitely* aren’t procrastinating about. It’s a Next.js + MUI MVP that turns life expectancy into tidy, spreadsheet-friendly numbers. Because nothing says “control” like rounding your existential dread to the nearest integer.
+existential-countdown.vercel.app
 
 ## What this is
 - A single-page dashboard that estimates how many coffees, Sundays, and “next weeks” you have left.
